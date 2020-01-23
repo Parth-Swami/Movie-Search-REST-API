@@ -1,39 +1,66 @@
 package com.parth.movieapi.models;
 
-import org.springframework.data.annotation.Id;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import com.parth.movieapi.models.documents.MovieDocuments;
+import com.parth.movieapi.models.repository.MovieRepository;
 import org.bson.types.ObjectId;
-import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.stereotype.Service;
 /**
  * Movie
  */
-@Document(collection = "movies")
+@Service("Movie")
 public class Movie {
 
-    @Id
-    private ObjectId _id;
-    private String name;
+    @Autowired
+    private MovieRepository movieRepository;
+    
+    public List<Object> findMovie(String prefix,int limit){
+        List<Object> response =new LinkedList<>();
+        MovieDocuments movieDoc=new MovieDocuments();
+        movieDoc.setName(prefix);
+        Pageable limitRequest=PageRequest.of(0, 1);
+        ExampleMatcher matcher = ExampleMatcher.matching()
+                .withMatcher("name", match -> match.startsWith());
+        Example<MovieDocuments> example= Example.of(movieDoc, matcher);
+        while (true) {
+            Page<MovieDocuments> page=movieRepository.findAll(example, limitRequest);
+            int number = page.getNumber();
+            int numberOfElements = page.getNumberOfElements();
+            int size = page.getSize();
+            long totalElements = page.getTotalElements();
+            int totalPages = page.getTotalPages();
+            System.out.printf("page info - page number %s, numberOfElements: %s, size: %s, "
+                            + "totalElements: %s, totalPages: %s%n",
+                    number, numberOfElements, size, totalElements, totalPages);
+            List<MovieDocuments> movieList = page.getContent();
 
-    public Movie(){}
+            movieList.forEach(action->{
+                response.add(action.getName());
+            });
 
-    public Movie(ObjectId _id,String name){
-        this._id=_id;
-        this.name=name;
+            if (!page.hasNext()) {
+                break;
+            }
+            limitRequest = page.nextPageable();
+        }
+        return response;
     }
 
-    public ObjectId get_id() {
-        return this._id;
+    public Map<String, Object> createMovie(Map<String, Object> request) {
+        Map<String, Object> response = new HashMap<>();
+        MovieDocuments movieDoc=new MovieDocuments(ObjectId.get(),(String) request.get("movie"));
+        movieRepository.save(movieDoc);
+        response.put("movie", movieDoc.getName());
+        response.put("id", movieDoc.get_id().toString());
+        return response;
     }
-
-    public void set_id(ObjectId _id) {
-        this._id = _id;
-    }
-
-    public String getName() {
-        return this.name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }  
-
 }
