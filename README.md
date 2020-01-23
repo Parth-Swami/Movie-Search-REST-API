@@ -2,8 +2,8 @@
 
 Create new Movie.
 ---
-URL: http://localhost:8084\
-Request Type:POST
+>URL: http://localhost:8084
+>Request Type:POST
 
 ```
 Request Body: 
