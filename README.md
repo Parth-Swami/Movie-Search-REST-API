@@ -2,8 +2,8 @@
 
 Create new Movie.
 ---
-URL: http://localhost:8084\
-Request Type:POST
+URL: http://localhost:8084<br />
+Request Type:POST<br />
 
 ```
 Request Body: 
@@ -21,8 +21,8 @@ Response:
 
 Get Movies List
 ---
-URL: http://localhost:8084/search/prefix/limit/\
-Request Type:GET
+URL: http://localhost:8084/search/prefix/limit/<br />
+Request Type:GET<br />
 
 ```
 Ex: http://localhost:8084/search/Jai/3/
