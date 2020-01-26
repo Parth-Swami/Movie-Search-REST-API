@@ -14,6 +14,7 @@ import com.parth.movieapi.models.documents.MovieDocuments;
 import com.parth.movieapi.models.repository.MovieRepository;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
+
 /**
  * Movie
  */
@@ -22,42 +23,29 @@ public class Movie {
 
     @Autowired
     private MovieRepository movieRepository;
-    
-    public List<Object> findMovie(String prefix,int limit){
-        List<Object> response =new LinkedList<>();
-        MovieDocuments movieDoc=new MovieDocuments();
+
+    public List<Object> findMovie(String prefix, int limit) {
+        List<Object> response = new LinkedList<>();
+        MovieDocuments movieDoc = new MovieDocuments();
         movieDoc.setName(prefix);
-        Pageable limitRequest=PageRequest.of(0, 1);
-        ExampleMatcher matcher = ExampleMatcher.matching()
-                .withMatcher("name", match -> match.startsWith());
-        Example<MovieDocuments> example= Example.of(movieDoc, matcher);
-        while (true) {
-            Page<MovieDocuments> page=movieRepository.findAll(example, limitRequest);
-            int number = page.getNumber();
-            int numberOfElements = page.getNumberOfElements();
-            int size = page.getSize();
-            long totalElements = page.getTotalElements();
-            int totalPages = page.getTotalPages();
-            System.out.printf("page info - page number %s, numberOfElements: %s, size: %s, "
-                            + "totalElements: %s, totalPages: %s%n",
-                    number, numberOfElements, size, totalElements, totalPages);
-            List<MovieDocuments> movieList = page.getContent();
+        Pageable limitRequest = PageRequest.of(0, limit);
+        ExampleMatcher matcher = ExampleMatcher.matching().withMatcher("name", match -> match.startsWith());
+        Example<MovieDocuments> example = Example.of(movieDoc, matcher);
 
-            movieList.forEach(action->{
-                response.add(action.getName());
-            });
+        Page<MovieDocuments> page = movieRepository.findAll(example, limitRequest);
 
-            if (!page.hasNext()) {
-                break;
-            }
-            limitRequest = page.nextPageable();
-        }
+        List<MovieDocuments> movieList = page.getContent();
+
+        movieList.forEach(action -> {
+            response.add(action.getName());
+        });
+
         return response;
     }
 
     public Map<String, Object> createMovie(Map<String, Object> request) {
         Map<String, Object> response = new HashMap<>();
-        MovieDocuments movieDoc=new MovieDocuments(ObjectId.get(),(String) request.get("movie"));
+        MovieDocuments movieDoc = new MovieDocuments(ObjectId.get(), (String) request.get("movie"));
         movieRepository.save(movieDoc);
         response.put("movie", movieDoc.getName());
         response.put("id", movieDoc.get_id().toString());
